@@ -4,6 +4,7 @@ import fastapi
 import requests
 import uvicorn
 from fastapi import FastAPI
+from starlette.responses import RedirectResponse, Response
 
 from models.arbitrage import ArbitrageDetails
 from models.currancy_pair import CurrencyPair
@@ -43,8 +44,18 @@ def query_price(symbol: SupportedSymbols) -> CurrencyPair:
     )
 
 
-@app.get("/arb", name="determine_arbitrage_details", response_model=ArbitrageDetails)
-def arbitrage_details(crypto: str = "BTC") -> Union[ArbitrageDetails, fastapi.Response]:
+@app.get(
+    "/arb", name="redirects_to_arbitrage", status_code=307, response_class=Response
+)
+def arb():
+    response = RedirectResponse("/arbitrage")
+    return response
+
+
+@app.get(
+    "/arbitrage", name="determine_arbitrage_details", response_model=ArbitrageDetails
+)
+def arbitrage(crypto: str = "BTC") -> Union[ArbitrageDetails, fastapi.Response]:
     # Temporary
     if crypto.upper() != "BTC":
         return fastapi.Response(
