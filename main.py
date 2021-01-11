@@ -55,7 +55,9 @@ def arb():
 @app.get(
     "/arbitrage", name="determine_arbitrage_details", response_model=ArbitrageDetails
 )
-def arbitrage(crypto: str = "BTC") -> Union[ArbitrageDetails, fastapi.Response]:
+def arbitrage(
+    crypto: str = "BTC", trigger_percent: int = 3
+) -> Union[ArbitrageDetails, fastapi.Response]:
     # Temporary
     if crypto.upper() != "BTC":
         return fastapi.Response(
@@ -68,21 +70,26 @@ def arbitrage(crypto: str = "BTC") -> Union[ArbitrageDetails, fastapi.Response]:
 
     btcmyr = btcusdt * usdmyr
     diff = xbtmyr - btcmyr
+    perc = abs(diff) / max(xbtmyr, btcmyr) * 100
 
-    if diff > 0:
+    if diff > 0 and perc > trigger_percent:
         arbitrage_decision = "Buy in Binance, Sell in Luno"
-        arbitrage_profit = diff
-    elif diff < 0:
+        arbitrage_profit_amount = diff
+        arbitrage_profit_percent = diff / xbtmyr * 100
+    elif diff < 0 and perc > trigger_percent:
         arbitrage_decision = "Buy in Luno, Sell in Binance"
-        arbitrage_profit = -diff
+        arbitrage_profit_amount = -diff
+        arbitrage_profit_percent = diff / btcmyr * 100
     else:
         arbitrage_decision = "No decision!"
-        arbitrage_profit = 0
+        arbitrage_profit_amount = abs(diff)
+        arbitrage_profit_percent = perc
 
     return ArbitrageDetails(
         crypto=crypto,
         arbitrage_decision=arbitrage_decision,
-        arbitrage_profit=arbitrage_profit,
+        arbitrage_profit_amount=arbitrage_profit_amount,
+        arbitrage_profit_percent=arbitrage_profit_percent,
         binance_btc_usdt=btcusdt,
         luno_xbt_myr=xbtmyr,
         usd_myr=usdmyr,

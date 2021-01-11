@@ -7,7 +7,8 @@ from pydantic import BaseModel
 class ArbitrageDetails(BaseModel):
     crypto: str
     arbitrage_decision: str
-    arbitrage_profit: float
+    arbitrage_profit_amount: float
+    arbitrage_profit_percent: float
     binance_btc_usdt: float
     luno_xbt_myr: float
     usd_myr: float
