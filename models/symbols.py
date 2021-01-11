@@ -10,6 +10,7 @@ class BinanceSymbols(StrEnum):
 
 class LunoSymbols(StrEnum):
     XBTMYR = "XBTMYR"
+    ETHMYR = "ETHMYR"
 
 
 class FiatSymbols(StrEnum):
