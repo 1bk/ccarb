@@ -1,5 +1,6 @@
-requests==2.25.1
-uvicorn==0.12.3
+httpx==0.16.1
 pydantic==1.7.2
+uvicorn==0.12.3
+codetiming==1.2.0
 fastapi==0.63.0
 fastapi_utils==0.2.1

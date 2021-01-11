@@ -13,5 +13,5 @@ class ArbitrageDetails(BaseModel):
     luno_xbt_myr: float
     usd_myr: float
     btc_myr: float
-    request_time: datetime.datetime = datetime.datetime.now()
+    request_time: datetime.datetime
     meta: Optional[Union[str, dict]]
