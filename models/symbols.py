@@ -6,6 +6,7 @@ from fastapi_utils.enums import StrEnum
 class BinanceSymbols(StrEnum):
     ETHUSDT = "ETHUSDT"
     BTCUSDT = "BTCUSDT"
+    ZENUSDT = "ZENUSDT"
 
 
 class LunoSymbols(StrEnum):

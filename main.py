@@ -4,6 +4,7 @@ from typing import Union
 
 import fastapi
 import httpx
+import pandas as pd
 import uvicorn
 from codetiming import Timer
 from fastapi import FastAPI, Depends
@@ -12,6 +13,7 @@ from starlette.responses import RedirectResponse, Response
 from models.arbitrage import ArbitrageDetails, Arbitrage, ArbitrageRequest
 from models.currancy_pair import CurrencyPair
 from models.symbols import SupportedSymbols, BinanceSymbols, LunoSymbols, FiatSymbols
+from service.zennode import get_zen_node_payments, SecureNodePayments
 
 app = FastAPI()
 
@@ -128,6 +130,54 @@ async def arbitrage(
         btc_myr=btcmyr,
         request_time=datetime.datetime.now(),
     )
+
+
+@app.get("/zennode", name="determine_secure_node_profits")
+async def zen_node(
+    # arbitrage_request: ArbitrageRequest = Depends()
+) -> dict:
+    with Timer(text="\nTotal elapsed time: {:.1f}"):
+        zen_info = await asyncio.gather(
+            asyncio.create_task(get_zen_node_payments()),
+            asyncio.create_task(query_price(BinanceSymbols.ZENUSDT)),
+        )
+
+        pmt = SecureNodePayments(**zen_info[0])
+        zen_usdt: CurrencyPair = zen_info[1]
+
+        df: pd.DataFrame = pd.DataFrame([r.dict() for r in pmt.rows])
+        df2: pd.DataFrame = df.loc[
+            (df["status"] == "review") | (df["status"] == "rollup")
+        ].sort_values(by=["enddate"], ascending=False)
+
+        mean_pmt = df2.head(10)["zen"].mean()
+        sum_pmt = df2.head(30)["zen"].sum()
+
+        gross_ret_mean = mean_pmt * 30 * zen_usdt.price
+        gross_ret_sum = sum_pmt * zen_usdt.price
+
+        cost = 6.00
+
+        net_profit_mean = gross_ret_mean - cost
+        net_profit_sum = gross_ret_sum - cost
+
+        return {
+            "notes": "Price in USD",
+            "monthly_payments": {
+                "mean_10d": mean_pmt * 30,
+                "rolling_30d": sum_pmt,
+            },
+            "monthly_gross_return": {
+                "mean_10d": gross_ret_mean,
+                "rolling_30d": gross_ret_sum,
+            },
+            "monthly_cost": {"vps_monthly": cost},
+            "ZEN": {"price": zen_usdt.price},
+            "monthly_profit": {
+                "mean_10d": net_profit_mean,
+                "rolling_30d": net_profit_sum,
+            },
+        }
 
 
 if __name__ == "__main__":
