@@ -74,7 +74,7 @@ def arb():
     "/arbitrage", name="determine_arbitrage_details", response_model=ArbitrageDetails
 )
 async def arbitrage(
-        arbitrage_request: ArbitrageRequest = Depends()
+    arbitrage_request: ArbitrageRequest = Depends(),
 ) -> Union[ArbitrageDetails, fastapi.Response]:
     with Timer(text="\nTotal elapsed time: {:.1f}"):
 
@@ -116,7 +116,7 @@ async def arbitrage(
             arbitrage_profit_percent = perc
 
     return ArbitrageDetails(
-        crypto=arbitrage_request.crypto,
+        request=arbitrage_request,
         arbitrage=Arbitrage(
             decision=arbitrage_decision,
             profit_amount=arbitrage_profit_amount,

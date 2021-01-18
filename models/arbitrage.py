@@ -1,11 +1,17 @@
 import datetime
 from typing import Optional, Union
 
+from fastapi_utils.enums import StrEnum
 from pydantic import BaseModel
 
 
+class ValidCrypto(StrEnum):
+    BTC = "BTC"
+    # ETH = "ETH"   # WIP
+
+
 class ArbitrageRequest(BaseModel):
-    crypto: str = "BTC"
+    crypto: ValidCrypto = ValidCrypto.BTC
     target_percent: float = 3.0
 
 
@@ -16,7 +22,7 @@ class Arbitrage(BaseModel):
 
 
 class ArbitrageDetails(BaseModel):
-    crypto: str
+    request: ArbitrageRequest
     arbitrage: Arbitrage
     binance_btc_usdt: float
     luno_xbt_myr: float
